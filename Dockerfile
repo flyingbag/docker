@@ -1,8 +1,16 @@
-FROM java:8-jdk
+FROM ubuntu:14.04
 
-RUN apt-get update && apt-get install -y wget git curl zip && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y ca-certificates software-properties-common \
+	&& add-apt-repository -y ppa:webupd8team/java \
+	&& apt-get update \
+	&& echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections \
+	&& apt-get install -y oracle-java8-installer oracle-java8-set-default wget maven git curl zip \
+	&& mkdir /data \
+	&& mkdir /data/jenkins \
+	&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ENV JENKINS_HOME /var/jenkins_home
+ENV MAVEN_HOME /usr/share/maven
+ENV JENKINS_HOME /data/jenkins
 ENV JENKINS_SLAVE_AGENT_PORT 50000
 
 # Jenkins is run with user `jenkins`, uid = 1000
@@ -12,7 +20,7 @@ RUN useradd -d "$JENKINS_HOME" -u 1000 -m -s /bin/bash jenkins
 
 # Jenkins home directory is a volume, so configuration and build history 
 # can be persisted and survive image upgrades
-VOLUME /var/jenkins_home
+VOLUME /data/jenkins
 
 # `/usr/share/jenkins/ref/` contains all reference configuration we want 
 # to set on a fresh new installation. Use it to bundle additional plugins 
